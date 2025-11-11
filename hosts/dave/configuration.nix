@@ -32,17 +32,21 @@
     };
   };
 
-  fonts.packages = with pkgs; [
-    noto-fonts
-    noto-fonts-cjk-sans
-    noto-fonts-color-emoji
-    liberation_ttf
-    fira-code
-    fira-code-symbols
-    mplus-outline-fonts.githubRelease
-    dina-font
-    proggyfonts
-  ] ++ builtins.filter lib.attrsets.isDerivation (builtins.attrValues pkgs.nerd-fonts);
+  fonts = {
+    enableDefaultPackages = true;
+  
+    packages = with pkgs; [
+      noto-fonts
+      noto-fonts-cjk-sans
+      noto-fonts-color-emoji
+      liberation_ttf
+      fira-code
+      fira-code-symbols
+      mplus-outline-fonts.githubRelease
+      dina-font
+      proggyfonts
+    ] ++ builtins.filter lib.attrsets.isDerivation (builtins.attrValues pkgs.nerd-fonts);
+  };
 
   virtualisation = {
     vmVariant = {
@@ -73,6 +77,7 @@
       # no need to redefine it in your config for now)
       #media-session.enable = true;
     };
+    tailscale.useRoutingFeatures = "client";
   };
 
   environment.systemPackages = with pkgs; [
@@ -92,7 +97,8 @@
     rofi
     starship
     thunderbird
-    trash-cli         
+    trash-cli 
+    vdhcoapp        
     vscode-fhs
     waybar
     wl-clipboard
@@ -102,6 +108,7 @@
     xwayland
   ];
 
+  networking.wireless.enable = true;
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.

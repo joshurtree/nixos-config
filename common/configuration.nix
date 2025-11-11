@@ -21,7 +21,7 @@
       };
     };
 
-    networkmanager.enable = true;
+    #networkmanager.enable = true;
   };
 
   programs.git = {
@@ -64,7 +64,10 @@
     LC_TIME = "en_GB.UTF-8";
   };
 
-  services.openssh.enable = true;
+  services = { 
+    openssh.enable = true;
+    tailscale.enable = true;
+  };
   nixpkgs.config.allowUnfree = true;
   system.stateVersion = "25.05";
 }

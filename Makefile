@@ -1,7 +1,8 @@
-.PHONY: switch test dry-run clean help organize-vms
+.PHONY: commit host_check switch boot test upgrade clean help
 .DEFAULT_GOAL := help
 
 # Variables
+GIT_HOST ?= "git-server.lan"
 COMMIT_MSG ?= "Update configuration"
 TARGET_HOST ?= $(shell hostname)
 TEST_DIR ?= test
@@ -15,24 +16,31 @@ NC := \033[0m # No Color
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {@echo -e "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}'
 
-switch: ## Commit changes, push to origin, and rebuild NixOS system
+commit: *.nix
 ifndef COMMIT_MSG
 	$(error COMMIT_MSG is required. Usage: make switch COMMIT_MSG="your commit message")
 endif
-ifneq ($(TARGET_HOST),$(shell hostname))
-	$(warning TARGET_HOST does not match the current hostname. Current hostname is '$(shell hostname)'. Usage: make switch TARGET_HOST="$(shell hostname)" COMMIT_MSG="your commit message")
-	PROCEED := $(shell read -p "Proceed? (y/n): " ans; if [ $$ans = "y" ]; then echo -e "yes"; else echo -e "no"; fi)
-	ifneq ($(PROCEED), "yes"); then \
-		$(error Aborting switch due to hostname mismatch) \
-	endif
-endif
 	@echo -e "$(YELLOW)Switching NixOS configuration...$(NC)\n"
-	## git add .
-	git commit -a -m $(COMMIT_MSG)
+	git add .
+	git status --porcelain && git commit -a -m $(COMMIT_MSG)
 	git push origin main
+
+host_check:
+	ifneq ($(TARGET_HOST),$(shell hostname))
+		$(warning TARGET_HOST does not match the current hostname. Current hostname is '$(shell hostname)'. Usage: make switch TARGET_HOST="$(shell hostname)" COMMIT_MSG="your commit message")
+		PROCEED := $(shell read -p "Proceed? (y/n): " ans; if [ $$ans = "y"; then echo -e "yes"; else echo -e "no"; fi)
+		ifneq ($(PROCEED), "yes"); then \
+			$(error Aborting switch due to hostname mismatch) \
+		endif
+	endif
+
+switch: commit host_check ## Commit changes, push to origin, and rebuild NixOS system
 	nixos-rebuild switch --flake .\#$(TARGET_HOST) --sudo
 
-upgrade: ## Upgrade NixOS system and all packages
+boot: commit host_check ## Commit changes, push to origin, and rebuild NixOS system with bootloader update
+	nixos-rebuild boot --flake .\#$(TARGET_HOST) --sudo
+
+upgrade: commit host_check## Upgrade NixOS system and all packages
 	@echo -e "$(YELLOW)Upgrading NixOS system and packages...$(NC)\n"
 	nixos-rebuild switch --flake .\#$(TARGET_HOST) --upgrade --sudo
 
