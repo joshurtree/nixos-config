@@ -26,11 +26,11 @@ endif
 	@git push origin main
 
 host_check:
-	ifneq (${TARGET_HOST}, $(shell hostname))
+	ifneq ${TARGET_HOST}, $(shell hostname
 		$(warning TARGET_HOST (${TARGET_HOST}) does not match the current hostname ($(shell hostname))). 
 		PROCEED := $(shell read -p "Proceed? (y/n): ")
-		ifneq (${PROCEED}, "y"); then \
-			$(error Aborting switch due to hostname mismatch) \
+		ifneq ${PROCEED}, "y"
+			$(error Aborting switch due to hostname mismatch) 
 		endif
 	endif
 
