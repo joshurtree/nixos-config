@@ -22,7 +22,7 @@ ifndef COMMIT_MSG
 endif
 	@echo -e "$(YELLOW)Switching NixOS configuration...$(NC)\n"
 	@git add .
-	@git status --porcelain && git commit -a -m $(COMMIT_MSG)
+	@git commit -a -m $(COMMIT_MSG)
 	@git push origin main
 
 host_check:
