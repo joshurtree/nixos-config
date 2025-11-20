@@ -1,3 +1,4 @@
-{ inputs }: {
-  inherit (inputs) nixpkgs linger pihole;
+inputs: {
+  pihole = inputs.pihole;
+  linger = inputs.linger;
 }

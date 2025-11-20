@@ -32,9 +32,20 @@
     };
   };
 
+  fileSystems."/mnt/share" = {
+    device = "//shares.manx-dominant.ts.net/nas";
+    fsType = "cifs";
+    options = let
+      # this line prevents hanging on network split
+      automount_opts = "x-systemd.automount,noauto,x-systemd.idle-timeout=60,x-systemd.device-timeout=5s,x-systemd.mount-timeout=5s";
+
+    in ["${automount_opts},credentials=/etc/nixos/smb-secrets,uid=1000,gid=100"];
+  };
+
   fonts = {
     enableDefaultPackages = true;
-  
+    fontconfig.enable = true;
+    
     packages = with pkgs; [
       noto-fonts
       noto-fonts-cjk-sans
@@ -94,6 +105,7 @@
     kitty
     libreoffice
     openttd
+    protonvpn-gui
     rofi
     starship
     thunderbird
@@ -108,9 +120,6 @@
     xwayland
   ];
 
-  networking.wireless.enable = true;
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
 }

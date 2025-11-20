@@ -13,15 +13,15 @@
   };
 
   networking = {
-    wireless = {
-      networks = {
-        "OpenWrt" = {
-          psk = builtins.readFile ../secrets/openwrt;
-        };
-      };
-    };
+#    wireless = {
+#      networks = {
+#        "OpenWrt" = {
+#          psk = builtins.readFile ../secrets/openwrt;
+#        };
+#      };
+#    };
 
-    #networkmanager.enable = true;
+    networkmanager.enable = true;
   };
 
   programs.git = {
@@ -46,6 +46,7 @@
     python3
     usbutils
     fastfetch
+    cifs-utils
   ];
 
   time.timeZone = "Europe/London";
@@ -68,6 +69,16 @@
     openssh.enable = true;
     tailscale.enable = true;
   };
+
+  boot.loader.systemd-boot.configurationLimit = 10;
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 1w";
+  };
+
+  nix.settings.auto-optimise-store = true;
+
   nixpkgs.config.allowUnfree = true;
   system.stateVersion = "25.05";
 }

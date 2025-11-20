@@ -5,7 +5,7 @@
 GIT_HOST ?= "git-server.lan"
 COMMIT_MSG ?= "Update configuration"
 TARGET_HOST ?= $(shell hostname)
-TEST_DIR ?= test
+BUILD_ARGS = --flake .\#$(TARGET_HOST) 
 
 # Colors for output
 GREEN := \033[0;32m
@@ -14,16 +14,16 @@ RED := \033[0;31m
 NC := \033[0m # No Color
 
 help: ## Show this help message
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {@echo -e "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}'
 
 commit: *.nix
 ifndef COMMIT_MSG
 	$(error COMMIT_MSG is required. Usage: make switch COMMIT_MSG="your commit message")
 endif
 	@echo -e "$(YELLOW)Switching NixOS configuration...$(NC)\n"
-	git add .
-	git status --porcelain && git commit -a -m $(COMMIT_MSG)
-	git push origin main
+	@git add .
+	@git status --porcelain && git commit -a -m $(COMMIT_MSG)
+	@git push origin main
 
 host_check:
 	ifneq ($(TARGET_HOST),$(shell hostname))
@@ -35,30 +35,33 @@ host_check:
 	endif
 
 switch: commit host_check ## Commit changes, push to origin, and rebuild NixOS system
-	nixos-rebuild switch --flake .\#$(TARGET_HOST) --sudo
+	@nixos-rebuild switch $(BUILD_ARGS) --sudo
 
 boot: commit host_check ## Commit changes, push to origin, and rebuild NixOS system with bootloader update
-	nixos-rebuild boot --flake .\#$(TARGET_HOST) --sudo
+	@nixos-rebuild boot $(BUILD_ARGS) --sudo
 
 upgrade: commit host_check## Upgrade NixOS system and all packages
 	@echo -e "$(YELLOW)Upgrading NixOS system and packages...$(NC)\n"
-	nixos-rebuild switch --flake .\#$(TARGET_HOST) --upgrade --sudo
+	@nixos-rebuild switch $BUILD_ARGS --upgrade --sudo
 
-test: ## Build and run NixOS VM for testing (optionally specify TARGET_HOST)
+test: commit host_check ## Build and test NixOS configuration
+	@echo -e "$(YELLOW)Testing NixOS configuration for host: $(TARGET_HOST)$(NC)\n"
+	@nixos-rebuild test $(BUILD_ARGS) --show-trace
+		 
+test-vm: ## Build and run NixOS VM for testing (optionally specify TARGET_HOST)
 	@echo -e "$(YELLOW)Building VM for host: $(TARGET_HOST)$(NC)\n"
-	@cd $(TEST_DIR)
-	@if nixos-rebuild build-vm --show-trace --flake .\#$(TARGET_HOST); then \
+	@if nixos-rebuild build-vm $(BUILD_ARGS) --show-trace; then \
 		echo -e "$(GREEN)Build successful. Starting VM...$(NC)"; \
 		result/bin/run-$(TARGET_HOST)-vm; \
 	else \
-		echo -e "$(RED)Build failed. Skipping VM start.$(NC)"; \
+		echo -e "$(RED) Build failed. Skipping VM start.$(NC)"; \
 		exit 1; \
 	fi
 
-dry-run: 
+dry-run: ## Perform a dry run of the NixOS configuration switch
 	@echo -e "$(YELLOW)Performing dry run for NixOS configuration switch...$(NC)\n"
-	git diff
-	ifeq ($(nixos-rebuild switch --flake .\#$(TARGET_HOST) --dry-run),0)
+	@git diff
+	ifeq ($(nixos-rebuild switch $(BUILD_ARGS) --dry-run),0)
 		echo -e "$(GREEN)Dry run complete - no changes were made$(NC)"
 	endif
 
@@ -66,5 +69,6 @@ clean: ## Remove build artifacts
 	@echo -e "$(YELLOW)Cleaning build artifacts...$(NC)\n"
 	@if [ -D result ]; then \
 		rm -rf result; \
+		rm -f *.qcow2; \
 		echo -e "$(GREEN)Removed result symlink$(NC)"; \
 	fi

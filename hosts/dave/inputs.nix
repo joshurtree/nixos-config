@@ -1,3 +1,4 @@
-{ inputs }: {
-  inherit (inputs) nixpkgs home-manager hyprsession;
+inputs: {
+  hyprsession = inputs.hyprsession;
+  home-manager = inputs.home-manager;
 }
