@@ -27,7 +27,7 @@ endif
 
 host_check:
 	ifneq ($(TARGET_HOST),$(shell hostname))
-		$(warning TARGET_HOST does not match the current hostname. Current hostname is '$(shell hostname)'. Usage: make switch TARGET_HOST="$(shell hostname)" COMMIT_MSG="your commit message")
+		$(warning TARGET_HOST (${TARGET_HOST}) does not match the current hostname ('$(shell hostname)'). 
 		PROCEED := $(shell read -p "Proceed? (y/n): " ans; if [ $$ans = "y"; then echo -e "yes"; else echo -e "no"; fi)
 		ifneq ($(PROCEED), "yes"); then \
 			$(error Aborting switch due to hostname mismatch) \
