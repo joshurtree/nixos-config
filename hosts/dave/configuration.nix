@@ -101,7 +101,8 @@
     dconf
     discord
     hypridle   
-    inputs.hyprsession    
+    inputs.hyprsession  
+    jellyfin-media-player  
     kdePackages.dolphin 
     kdePackages.kate
     kitty
