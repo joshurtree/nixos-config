@@ -7,15 +7,6 @@
 
   boot.kernelParams = [ "intel_iommu=on" ];
 
-  #services.desktopManager.plasma6.enable = true;
-  
-  services.displayManager = {
-    sddm.enable = true;
-    sddm.wayland.enable = true;
-    autoLogin.enable = true;
-    autoLogin.user = "josh";
-  };
-
   programs = {
     hyprland = {
       enable = true;
@@ -34,7 +25,7 @@
 
   fileSystems."/mnt/nas" = {
     device = "//shares.manx-dominant.ts.net/nas";
-    fsType = "cifs";
+    fsType = "cifs"; 
     options = let
       # this line prevents hanging on network split
       automount_opts = "x-systemd.automount,noauto,x-systemd.idle-timeout=60,x-systemd.device-timeout=5s,x-systemd.mount-timeout=5s";
@@ -74,6 +65,15 @@
   security.pam.services.login.enableGnomeKeyring = true;
 
   services = {
+    displayManager = {
+      sddm.enable = true;
+      sddm.wayland.enable = true;
+      autoLogin.enable = true;
+      autoLogin.user = "josh";
+      defaultSession = "hyprland";
+    };
+    desktopManager.plasma6.enable = true;
+
     # printing.enable = true;
     gnome.gnome-keyring.enable = true;
 
@@ -101,8 +101,7 @@
     dconf
     discord
     hypridle   
-    inputs.hyprsession  
-    jellyfin-media-player  
+    inputs.hyprsession 
     kdePackages.dolphin 
     kdePackages.kate
     kitty

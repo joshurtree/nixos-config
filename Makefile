@@ -2,10 +2,10 @@
 .DEFAULT_GOAL := help
 
 # Variables
-GIT_HOST ?= "git-server.lan"
 COMMIT_MSG ?= "Update configuration"
 TARGET_HOST ?= $(shell hostname)
-BUILD_ARGS = --flake .\#$(TARGET_HOST) 
+BUILD_ARGS ?= --flake .\#$(TARGET_HOST)
+GIT_REMOTE ?= server
 
 # Colors for output
 GREEN := \033[0;32m
@@ -22,15 +22,15 @@ ifndef COMMIT_MSG
 endif
 	@echo -e "$(YELLOW)Switching NixOS configuration...$(NC)\n"
 	@git add .
-	@git commit -a -m $(COMMIT_MSG) && git push origin main
+	@git commit -m $(COMMIT_MSG) && git push $(GIT_REMOTE) main
 
 host_check:
 ifneq (${TARGET_HOST}, $(shell hostname))
 	$(warning TARGET_HOST (${TARGET_HOST}) does not match the current hostname ($(shell hostname))). 
 	PROCEED := $(shell read -p "Proceed? (y/n): ")
-ifneq (${PROCEED}, "y")
-	$(error Aborting switch due to hostname mismatch) 
-endif
+	@if [ "${PROCEED}" != "y" ]; then \
+		$(error Aborting switch due to hostname mismatch) \
+	fi
 endif
 
 switch: commit host_check ## Commit changes, push to origin, and rebuild NixOS system
@@ -60,9 +60,9 @@ test-vm: ## Build and run NixOS VM for testing (optionally specify TARGET_HOST)
 dry-run: ## Perform a dry run of the NixOS configuration switch
 	@echo -e "$(YELLOW)Performing dry run for NixOS configuration switch...$(NC)\n"
 	@git diff
-	ifeq ($(nixos-rebuild switch $(BUILD_ARGS) --dry-run),0)
-		echo -e "$(GREEN)Dry run complete - no changes were made$(NC)"
-	endif
+	@if nixos-rebuild dry-run $(BUILD_ARGS); then \
+		echo -e "$(GREEN)Dry run complete - no changes were made$(NC)"; \
+	fi
 
 clean: ## Remove build artifacts
 	@echo -e "$(YELLOW)Cleaning build artifacts...$(NC)\n"
