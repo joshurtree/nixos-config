@@ -22,7 +22,11 @@ ifndef COMMIT_MSG
 endif
 	@echo -e "$(YELLOW)Switching NixOS configuration...$(NC)\n"
 	@git add .
-	@git commit -m $(COMMIT_MSG) && git push $(GIT_REMOTE) main
+	@if git commit -m $(COMMIT_MSG) && git push $(GIT_REMOTE) main; then \
+		echo -e "$(GREEN)Git commit and push successful$(NC)"; \
+	else \
+		echo -e "$(Yellow)No changes to commit or push failed$(NC)"; \
+	fi
 
 host_check:
 ifneq (${TARGET_HOST}, $(shell hostname))
