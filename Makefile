@@ -31,8 +31,7 @@ endif
 host_check:
 ifneq (${TARGET_HOST}, $(shell hostname))
 	$(warning TARGET_HOST (${TARGET_HOST}) does not match the current hostname ($(shell hostname))). 
-	PROCEED := $(shell read -p "Proceed? (y/n): " ans; echo $$ans)
-	if [ "${PROCEED}" != "y" && "${PROCEED}" != "Y" ]; then \
+	@read -p "Proceed? (y/n): " PROCEED; if [ $${PROCEED:-"N"} != "y" && "$${PROCEED:-"N"}" != "Y" ]; then \
 		echo -e "$(RED)Aborting switch due to hostname mismatch$(NC)"; \
 		exit 1; \
 	fi
